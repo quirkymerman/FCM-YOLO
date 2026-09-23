@@ -282,7 +282,7 @@ class BaseModel(torch.nn.Module):
         """
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, DynamicHead)):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if isinstance(m, (Detect)):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             m.stride = fn(m.stride)
             m.anchors = fn(m.anchors)
             m.strides = fn(m.strides)
@@ -356,7 +356,7 @@ class DetectionModel(BaseModel):
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect,DynamicHead)):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
+        if isinstance(m, (Detect)):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect
             s = 256  # 2x min stride
             m.inplace = self.inplace
 
@@ -1144,7 +1144,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C3k2,
-            C3k2_LFP,
             RepNCSPELAN4,
             ELAN1,
             ADown,
@@ -1175,7 +1174,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             CSSPPF,
             CDCASPPF,
             B_FDSF,
-            N_FDSF,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1185,7 +1183,6 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             C2,
             C2f,
             C3k2,
-            C3k2_LFP,
             C2fAttn,
             C3,
             C3TR,
@@ -1223,7 +1220,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             if m in repeat_modules:
                 args.insert(2, n)  # number of repeats
                 n = 1
-            if m in {C3k2, C3k2_LFP}:  # for M/L/X sizes
+            if m in {C3k2}:  # for M/L/X sizes
                 legacy = False
                 if scale in "mlx":
                     args[3] = True
@@ -1247,22 +1244,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [c_backbone, c_neck, c2, *args]
 
 
-        elif m in {CSFAv2, CSFAv3, SCSF, SCSFv2, OSF_FDSF, OSF_QKV, SGFC}:
+        elif m in {CSFAv2, CSFAv3, SCSF, SCSFv2, OSF_QKV, SGFC}:
             c2 = args[0]
             if c2 != nc:
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             args = [[ch[x] for x in f], c2, *args[1:]]
-        elif m is BiFPN:
-            in_channels = [ch[x] for x in f]
-            out_channels = make_divisible(min(args[0], max_channels) * width, 8)
-            num_outs = args[2] if len(args) > 2 and args[2] is not None else len(in_channels)
-            args = [in_channels, out_channels, *args[1:]]
-            c2 = [out_channels] * int(num_outs)
-        elif m is AFPN:
-            in_channels = [ch[x] for x in f]
-            out_channels = list(in_channels)
-            args = [in_channels, out_channels]
-            c2 = out_channels
         elif m is SpectralTap:
             c2 = ch[f[0]]
             args = []
@@ -1284,7 +1270,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset({Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect, DynamicHead}):
+        elif m in frozenset({Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn, v10Detect}):
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
