@@ -1,0 +1,20 @@
+
+# AI-TOD Dataset Config for YOLOv8/v11
+path: D:\ntpy\datasets\AI-TOD\aitod # 数据集根目录
+train: images/train # 训练集图片 (相对于 path)
+val: images/val     # 验证集图片 (相对于 path)
+test: images/test   # 测试集图片 (可选)
+
+# 类别数量
+nc: 8
+
+# 类别名称
+names:
+  0: airplane
+  1: bridge
+  2: storage-tank
+  3: ship
+  4: swimming-pool
+  5: vehicle
+  6: person
+  7: wind-mill

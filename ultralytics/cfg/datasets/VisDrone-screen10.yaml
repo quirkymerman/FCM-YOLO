@@ -1,0 +1,15 @@
+path: D:\ntpy\yolo\yolov11-dsp\datasets\VisDrone_screen10
+train: images\train
+val: D:\ntpy\datasets\VisDrone_data\images\val
+
+names:
+  0: pedestrian
+  1: people
+  2: bicycle
+  3: car
+  4: van
+  5: truck
+  6: tricycle
+  7: awning-tricycle
+  8: bus
+  9: motor
